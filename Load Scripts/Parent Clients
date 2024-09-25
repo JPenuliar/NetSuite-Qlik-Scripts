@@ -1,0 +1,23 @@
+[Parent_Instructing_Contracting]:
+Load Coalesce("Instructing Client","Contracting Entity") as "Parent/Instructing/Contracting", *
+;
+LOAD Distinct
+custentity_client_lead as "_instructingentityid",
+ApplyMap('Map_cust_nameref',custentity_client_lead,Null()) as "Instructing Client",
+parent as "_contractingentityid" ,
+ApplyMap('Map_cust_nameref',parent, Null()) as "Contracting Entity"
+FROM [lib://NetSuite:DataFiles/L0_job.qvd](qvd);
+
+Concatenate([Parent_Instructing_Contracting])
+Load Coalesce("Instructing Client","Contracting Entity") as "Parent/Instructing/Contracting", *
+;
+LOAD
+Null()  as "_instructingentityid" ,
+Null() as "Instructing Client",
+id  as "_contractingentityid" ,
+If(IsNull(externalid), entitytitle, entitytitle & ' ('&Text(externalid) &')') as "Contracting Entity"
+FROM [lib://NetSuite:DataFiles/L0_customer.qvd](qvd)
+Where Not Exists(_contractingentityid,id) 
+and isinactive='F'
+and searchstage='Client'
+;
